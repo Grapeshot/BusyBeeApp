@@ -141,8 +141,27 @@ def health_check():
     """Health check endpoint"""
     return jsonify({'status': 'healthy', 'message': 'BusyBee API is running'}), 200
 
+@app.route('/', methods=['GET'])
+def home():
+    """Root endpoint for Railway health checks"""
+    return jsonify({
+        'message': 'BusyBee API is running!',
+        'status': 'healthy',
+        'endpoints': {
+            'health': '/api/health',
+            'tasks': '/api/tasks'
+        }
+    }), 200
+
 if __name__ == '__main__':
     init_db()
     print("Database initialized successfully!")
     print("Starting BusyBee API server...")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    
+    # Get port from Railway environment variable, default to 5000
+    port = int(os.environ.get('PORT', 5000))
+    
+    # Run in production mode on Railway, debug mode locally
+    debug_mode = os.environ.get('RAILWAY_ENVIRONMENT') is None
+    
+    app.run(debug=debug_mode, host='0.0.0.0', port=port)

@@ -21,6 +21,7 @@ export default function App() {
   const [newTaskText, setNewTaskText] = useState('');
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState('checking');
 
   // Fetch tasks from API
   const fetchTasks = async () => {
@@ -29,11 +30,14 @@ export default function App() {
       if (response.ok) {
         const data = await response.json();
         setTasks(data);
+        setConnectionStatus('connected');
       } else {
         Alert.alert('Error', 'Failed to fetch tasks');
+        setConnectionStatus('error');
       }
     } catch (error) {
       Alert.alert('Error', 'Network error: ' + error.message);
+      setConnectionStatus('disconnected');
     }
   };
 
@@ -132,6 +136,26 @@ export default function App() {
       <View style={styles.header}>
         <Text style={styles.title}>🐝 BusyBee</Text>
         <Text style={styles.subtitle}>Stay productive, one task at a time</Text>
+        <View style={styles.connectionStatus}>
+          <Ionicons 
+            name={
+              connectionStatus === 'connected' ? 'wifi' : 
+              connectionStatus === 'disconnected' ? 'wifi-off' : 
+              'hourglass-outline'
+            } 
+            size={16} 
+            color={
+              connectionStatus === 'connected' ? '#4CAF50' : 
+              connectionStatus === 'disconnected' ? '#f44336' : 
+              '#ff9800'
+            } 
+          />
+          <Text style={styles.connectionText}>
+            {connectionStatus === 'connected' ? 'Connected' : 
+             connectionStatus === 'disconnected' ? 'Disconnected' : 
+             'Connecting...'}
+          </Text>
+        </View>
       </View>
 
       {/* Add Task Section */}
@@ -204,6 +228,16 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     color: '#666',
+  },
+  connectionStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  connectionText: {
+    fontSize: 12,
+    color: '#666',
+    marginLeft: 4,
   },
   addTaskContainer: {
     flexDirection: 'row',
