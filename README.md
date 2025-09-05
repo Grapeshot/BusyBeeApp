@@ -1,12 +1,16 @@
-Busy Bee To Do App:
-
-Here’s a **super simple example other than weather** that still hits every requirement:
-
----
-
-# **To-Do Lite (Expo + Flask)**
+# **Busy Bee To Do App (Expo + Flask)**
 
 A one-screen mobile app where you add a short task and it syncs to a backend.
+
+## Project Structure
+
+```
+BusyBeeApp/
+├── mobile/          # Expo React Native app
+├── backend/         # Flask API
+├── README.md
+└── .gitignore
+```
 
 ---
 
