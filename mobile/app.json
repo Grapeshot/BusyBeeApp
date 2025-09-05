@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "BusyBee",
+    "slug": "busybee-todo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFD700"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.busybee.todo"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFD700"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.busybee.todo"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
