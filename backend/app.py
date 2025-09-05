@@ -158,10 +158,10 @@ if __name__ == '__main__':
     print("Database initialized successfully!")
     print("Starting BusyBee API server...")
     
-    # Get port from Railway environment variable, default to 5000
+    # Get port from Render environment variable, default to 5000
     port = int(os.environ.get('PORT', 5000))
     
-    # Run in production mode on Railway, debug mode locally
-    debug_mode = os.environ.get('RAILWAY_ENVIRONMENT') is None
+    # Run in production mode on Render, debug mode locally
+    debug_mode = os.environ.get('RENDER') is None
     
     app.run(debug=debug_mode, host='0.0.0.0', port=port)
