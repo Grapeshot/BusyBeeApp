@@ -164,4 +164,5 @@ if __name__ == '__main__':
     # Run in production mode on Render, debug mode locally
     debug_mode = os.environ.get('RENDER') is None
     
+    print(f"Starting server on port {port}")
     app.run(debug=debug_mode, host='0.0.0.0', port=port)
