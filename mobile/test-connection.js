@@ -1,7 +1,7 @@
 // Simple test script to verify mobile app can connect to backend
 // Run this in the mobile directory: node test-connection.js
 
-const API_BASE_URL = 'http://192.168.1.72:5000/api';
+const API_BASE_URL = 'https://busybeeapp.onrender.com/api';
 
 async function testConnection() {
   console.log('🧪 Testing mobile app connection to backend...');

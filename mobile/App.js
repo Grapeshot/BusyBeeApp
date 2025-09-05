@@ -14,7 +14,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 
 // API Configuration
-const API_BASE_URL = 'http://192.168.1.72:5000/api';
+const API_BASE_URL = 'https://busybeeapp.onrender.com/api';
 
 export default function App() {
   const [tasks, setTasks] = useState([]);
