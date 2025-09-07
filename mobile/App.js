@@ -22,6 +22,8 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('checking');
+  const [weather, setWeather] = useState(null);
+  const [weatherLoading, setWeatherLoading] = useState(true);
 
   // Fetch tasks from API
   const fetchTasks = async () => {
@@ -92,9 +94,43 @@ export default function App() {
     }
   };
 
-  // Load tasks on app start
+  const fetchWeather = async (city = "Atlanta") => {
+    try {
+      console.log(`Fetching weather for: ${city}`); // This will show in Metro bundler
+      const url = `${API_BASE_URL}/weather?city=${city}`;
+      console.log(`Weather URL: ${url}`);
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      console.log("Weather API response status:", response.status);
+      console.log("Weather API response data:", JSON.stringify(data, null, 2));
+      
+      if (response.ok && data.temperature != undefined) {
+        setWeather(data);
+        console.log("Weather data set successfully");
+      } else {
+        console.log("Weather API error:", data.error || "Unknown error");
+        Alert.alert("Weather Error", data.error || "Failed to fetch weather");
+        setWeather(null); // Explicitly set to null on error
+      }
+    } catch (error) {
+      console.log("Network error fetching weather:", error.message);
+      Alert.alert("Weather Error", "Network error: " + error.message);
+      setWeather(null);
+    } finally {
+      setWeatherLoading(false);
+    }
+  };
+  
   useEffect(() => {
-    fetchTasks();
+    // Fetch both tasks and weather when the app starts
+    const initializeApp = async () => {
+      await fetchTasks();
+      await fetchWeather();
+    };
+  
+    initializeApp();
   }, []);
 
   // Handle pull-to-refresh
@@ -157,7 +193,18 @@ export default function App() {
           </Text>
         </View>
       </View>
-
+      {/*Weather Widget*/}
+      {weatherLoading ? (
+        <Text>Loading weather...</Text>
+      ) : weather ? (
+        <View style={{ alignItems: "center", marginTop: 10 }}>
+          <Text style={{ fontSize: 16 }}>
+            🌤 {weather.city}: {weather.temperature}°C - {weather.description}
+          </Text>
+        </View>
+      ) : (
+        <Text>Weather not available</Text>
+      )}
       {/* Add Task Section */}
       <View style={styles.addTaskContainer}>
         <TextInput

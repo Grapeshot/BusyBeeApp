@@ -1,14 +1,19 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from dotenv import load_dotenv
+import requests
 import sqlite3
 import datetime
 import os
+
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # Database configuration
 DATABASE = 'tasks.db'
+WEATHER_API_KEY = os.getenv('WEATHER_API_KEY')  # store in env var
 
 def init_db():
     """Initialize the database with tasks table"""
@@ -135,6 +140,28 @@ def update_task(task_id):
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+
+@app.route('/api/weather', methods=['GET'])
+def get_weather():
+    city = request.args.get('city', 'Atlanta') # default to Atlanta
+    try:
+        url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_API_KEY}&units=metric"
+        response = requests.get(url)
+        data = response.json()
+        
+        if response.status_code != 200:
+            return jsonify({'error': data.get('message', 'Weather fetch failed')}), 400
+        
+        weather_info = {
+            'city': data['name'],
+            'temperature': data['main']['temp'],
+            'description': data['weather'][0]['description'],
+            'icon': data['weather'][0]['icon']
+        }
+        return jsonify(weather_info), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
@@ -149,7 +176,8 @@ def home():
         'status': 'healthy',
         'endpoints': {
             'health': '/api/health',
-            'tasks': '/api/tasks'
+            'tasks': '/api/tasks',
+            'weather': '/api/weather'
         }
     }), 200
 
