@@ -141,6 +141,31 @@ def health_check():
     """Health check endpoint"""
     return jsonify({'status': 'healthy', 'message': 'BusyBee API is running'}), 200
 
+@app.route('/api/tasks', methods=['DELETE'])
+def clear_all_tasks():
+    """Clear all tasks from the database"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Count tasks before deletion
+        cursor.execute('SELECT COUNT(*) FROM tasks')
+        count = cursor.fetchone()[0]
+        
+        # Delete all tasks
+        cursor.execute('DELETE FROM tasks')
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            'message': f'Cleared {count} tasks from database',
+            'deleted_count': count
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/', methods=['GET'])
 def home():
     """Root endpoint for Railway health checks"""
