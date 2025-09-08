@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from passlib.hash import bcrypt
 from flask_cors import CORS
 from dotenv import load_dotenv
 import requests
@@ -16,16 +17,27 @@ DATABASE = 'tasks.db'
 WEATHER_API_KEY = os.getenv('WEATHER_API_KEY')  # store in env var
 
 def init_db():
-    """Initialize the database with tasks table"""
+    """Initialize the database with tasks and users table"""
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     
     cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    cursor.execute('''
         CREATE TABLE IF NOT EXISTS tasks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             text TEXT NOT NULL,
+            user_id INTEGER,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            done BOOLEAN DEFAULT FALSE
+            done BOOLEAN DEFAULT FALSE,
+            FOREIGN KEY(user_id) REFERENCES users(id)
         )
     ''')
     
@@ -38,54 +50,93 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row  # This enables column access by name
     return conn
 
+@app.route('/api/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        return jsonify({'error': 'Username and password required'}), 400
+
+    hashed_password = bcrypt.hash(password)
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            'INSERT INTO users (username, password) VALUES (?, ?)',
+            (username, hashed_password)
+        )
+        conn.commit()
+        conn.close()
+        return jsonify({'message': 'User registered successfully'}), 201
+    except sqlite3.IntegrityError:
+        return jsonify({'error': 'Username already exists'}), 400
+    
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        return jsonify({'error': 'Username and password required'}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
+    user = cursor.fetchone()
+    conn.close()
+
+    if user and bcrypt.verify(password, user['password']):
+        # For now, return user info (later you can add JWT)
+        return jsonify({'message': 'Login successful', 'user_id': user['id']}), 200
+    else:
+        return jsonify({'error': 'Invalid credentials'}), 401
+
 @app.route('/api/tasks', methods=['GET'])
 def get_tasks():
-    """Get all tasks"""
+    """Get all tasks for a user"""
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'user_id is required'}), 400
+    
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        cursor.execute('SELECT * FROM tasks ORDER BY created_at DESC')
+        cursor.execute('SELECT * FROM tasks WHERE user_id = ? ORDER BY created_at DESC', (user_id,))
         tasks = cursor.fetchall()
-        
         conn.close()
         
-        # Convert Row objects to dictionaries
-        tasks_list = []
-        for task in tasks:
-            tasks_list.append({
-                'id': task['id'],
-                'text': task['text'],
-                'created_at': task['created_at'],
-                'done': bool(task['done'])
-            })
+        tasks_list = [{
+            'id': task['id'],
+            'text': task['text'],
+            'created_at': task['created_at'],
+            'done': bool(task['done'])
+        } for task in tasks]
         
         return jsonify(tasks_list), 200
-        
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/tasks', methods=['POST'])
 def create_task():
     """Create a new task"""
+    data = request.get_json()
+    text = data.get('text', '').strip()
+    user_id = data.get('user_id')
+    
+    if not text:
+        return jsonify({'error': 'Text cannot be empty'}), 400
+    if not user_id:
+        return jsonify({'error': 'user_id is required'}), 400
+    
     try:
-        data = request.get_json()
-        
-        if not data or 'text' not in data:
-            return jsonify({'error': 'Text is required'}), 400
-        
-        text = data['text'].strip()
-        if not text:
-            return jsonify({'error': 'Text cannot be empty'}), 400
-        
         conn = get_db_connection()
         cursor = conn.cursor()
-        
-        cursor.execute(
-            'INSERT INTO tasks (text) VALUES (?)',
-            (text,)
-        )
-        
+        cursor.execute('INSERT INTO tasks (text, user_id) VALUES (?, ?)', (text, user_id))
         task_id = cursor.lastrowid
         conn.commit()
         conn.close()
@@ -96,7 +147,6 @@ def create_task():
             'created_at': datetime.datetime.now().isoformat(),
             'done': False
         }), 201
-        
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -201,6 +251,7 @@ def home():
         'status': 'healthy',
         'endpoints': {
             'health': '/api/health',
+            'login': '/api/login',
             'tasks': '/api/tasks',
             'weather': '/api/weather'
         }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import LoginScreen from './LoginScreen';
 import { 
   StyleSheet, 
   Text, 
@@ -17,6 +18,8 @@ import { Ionicons } from '@expo/vector-icons';
 const API_BASE_URL = 'https://busybeeapp.onrender.com/api';
 
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loggedInUserId, setLoggedInUserId] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [newTaskText, setNewTaskText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,8 +30,10 @@ export default function App() {
 
   // Fetch tasks from API
   const fetchTasks = async () => {
+    if (!loggedInUserId) return;
+
     try {
-      const response = await fetch(`${API_BASE_URL}/tasks`);
+      const response = await fetch(`${API_BASE_URL}/tasks?user_id=${loggedInUserId}`);
       if (response.ok) {
         const data = await response.json();
         setTasks(data);
@@ -54,15 +59,13 @@ export default function App() {
     try {
       const response = await fetch(`${API_BASE_URL}/tasks`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: newTaskText.trim() }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: newTaskText.trim(), user_id: loggedInUserId })
       });
 
       if (response.ok) {
         setNewTaskText('');
-        fetchTasks(); // Refresh the list
+        fetchTasks();
       } else {
         Alert.alert('Error', 'Failed to create task');
       }
@@ -85,7 +88,7 @@ export default function App() {
       });
 
       if (response.ok) {
-        fetchTasks(); // Refresh the list
+        fetchTasks();
       } else {
         Alert.alert('Error', 'Failed to update task');
       }
@@ -96,7 +99,7 @@ export default function App() {
 
   const fetchWeather = async (city = "Atlanta") => {
     try {
-      console.log(`Fetching weather for: ${city}`); // This will show in Metro bundler
+      console.log(`Fetching weather for: ${city}`);
       const url = `${API_BASE_URL}/weather?city=${city}`;
       console.log(`Weather URL: ${url}`);
       
@@ -112,7 +115,7 @@ export default function App() {
       } else {
         console.log("Weather API error:", data.error || "Unknown error");
         Alert.alert("Weather Error", data.error || "Failed to fetch weather");
-        setWeather(null); // Explicitly set to null on error
+        setWeather(null);
       }
     } catch (error) {
       console.log("Network error fetching weather:", error.message);
@@ -164,6 +167,17 @@ export default function App() {
     </View>
   );
 
+  
+  if (!isLoggedIn) {
+    return <LoginScreen 
+              onLoginSuccess={(userId) => {
+                  setLoggedInUserId(userId);
+                  setIsLoggedIn(true);
+              }} 
+           />;
+  }
+
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
@@ -193,6 +207,7 @@ export default function App() {
           </Text>
         </View>
       </View>
+
       {/*Weather Widget*/}
       {weatherLoading ? (
         <Text>Loading weather...</Text>
@@ -205,6 +220,7 @@ export default function App() {
       ) : (
         <Text>Weather not available</Text>
       )}
+
       {/* Add Task Section */}
       <View style={styles.addTaskContainer}>
         <TextInput
@@ -215,25 +231,14 @@ export default function App() {
           onSubmitEditing={createTask}
           returnKeyType="done"
         />
-        <TouchableOpacity 
-          style={[styles.addButton, loading && styles.addButtonDisabled]}
-          onPress={createTask}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <Ionicons name="add" size={24} color="#fff" />
-          )}
+        <TouchableOpacity style={[styles.addButton, loading && styles.addButtonDisabled]} onPress={createTask} disabled={loading}>
+          {loading ? <ActivityIndicator color="#fff" size="small" /> : <Ionicons name="add" size={24} color="#fff" />}
         </TouchableOpacity>
       </View>
 
       {/* Tasks List */}
       <View style={styles.tasksContainer}>
-        <Text style={styles.sectionTitle}>
-          Tasks ({tasks.length})
-        </Text>
-        
+        <Text style={styles.sectionTitle}>Tasks ({tasks.length})</Text>
         {tasks.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="checkmark-done-outline" size={64} color="#ccc" />
