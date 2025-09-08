@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const API_BASE_URL = 'http://127.0.0.1:5000/api'; // Change to Render URL when deployed
+const API_BASE_URL = 'https://busybeeapp.onrender.com/api';
 
 export default function RegisterScreen({ onRegisterSuccess, onBackToLogin }) {
   const [username, setUsername] = useState('');
