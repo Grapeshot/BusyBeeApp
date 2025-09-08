@@ -1,6 +1,6 @@
 # 🐝 BusyBee - Mobile Todo App
 
-A full-stack mobile application built with React Native (Expo) and Flask, featuring real-time task synchronization between mobile devices and a cloud-hosted backend. Now includes **user authentication** (register + login) with password hashing.
+A full-stack mobile application built with React Native (Expo) and Flask, featuring real-time task synchronization between mobile devices and a cloud-hosted backend.
 
 ## 📱 Live Demo
 
@@ -10,29 +10,25 @@ A full-stack mobile application built with React Native (Expo) and Flask, featur
 
 ## 🏗️ Architecture
 
+```
 BusyBeeApp/
-├── mobile/ # React Native (Expo) mobile application
-│ ├── App.js # Main application component
-│ ├── LoginScreen.js # User login
-│ ├── RegisterScreen.js # User registration
-│ ├── app.json # Expo configuration
-│ └── package.json # Dependencies
-├── backend/ # Flask REST API
-│ ├── app.py # Main Flask application (with auth + tasks)
-│ ├── wsgi.py # WSGI entry point
-│ ├── requirements.txt # Python dependencies
-│ └── tasks.db # SQLite database (stores users + tasks)
-└── README.md # This file
-
-markdown
-Copy code
+├── mobile/          # React Native (Expo) mobile application
+│   ├── App.js       # Main application component
+│   ├── app.json     # Expo configuration
+│   └── package.json # Dependencies
+├── backend/         # Flask REST API
+│   ├── app.py       # Main Flask application
+│   ├── wsgi.py      # WSGI entry point
+│   ├── requirements.txt # Python dependencies
+│   └── tasks.db     # SQLite database
+└── README.md        # This file
+```
 
 ## ✨ Features
 
 ### Mobile App
 - **📝 Task Management**: Add, view, and complete tasks
-- **🔑 Authentication**: Register new accounts and log in securely
-- **🔄 Real-time Sync**: Tasks sync instantly with backend
+- **🔄 Real-time Sync**: Instant synchronization with cloud backend
 - **📱 Native Feel**: Built with React Native for smooth performance
 - **🎨 Modern UI**: Clean, intuitive interface with BusyBee branding
 - **📲 Cross-platform**: Runs on iOS and Android via Expo Go
@@ -40,134 +36,161 @@ Copy code
 - **⚡ Offline Handling**: Graceful error handling and connection status
 
 ### Backend API
-- **🌐 RESTful API**: Standard HTTP endpoints for auth + tasks
-- **👥 User Accounts**: SQLite database stores registered users
-- **🔒 Secure Passwords**: Hashed with Passlib (`bcrypt` or `pbkdf2_sha256`)
-- **CORS Enabled**: Secure cross-origin requests for mobile app
-- **☁️ Cloud Hosted**: Deployed on Render
+- **🌐 RESTful API**: Standard HTTP endpoints for task operations
+- **💾 Data Persistence**: SQLite database for reliable data storage
+- **🔒 CORS Enabled**: Secure cross-origin requests for mobile app
+- **☁️ Cloud Hosted**: Deployed on Render for 24/7 availability
 - **📊 Health Monitoring**: Built-in health check endpoints
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - **Node.js** (v16 or higher)
-- **Python 3.9+**
 - **Expo Go** app on your mobile device
 - **Git** for version control
 
 ### Option 1: Use Deployed Backend (Recommended)
+The easiest way to get started is using the live backend:
+
 ```bash
 git clone https://github.com/your-username/BusyBeeApp.git
 cd BusyBeeApp/mobile
 npm install
 npx expo start
-The app is pre-configured to use the live backend at:
-
-arduino
-Copy code
-https://busybeeapp.onrender.com/api
 ```
+
+The mobile app is already configured to connect to the deployed backend at `https://busybeeapp.onrender.com`.
+
 ### Option 2: Local Development
+If you want to modify the backend or develop locally:
+
 ```bash
-Copy code
 git clone https://github.com/your-username/BusyBeeApp.git
 cd BusyBeeApp
-```
+
 # Start backend locally
 cd backend
 pip install -r requirements.txt
-
-# If bcrypt gives errors, use:
-# pip install bcrypt
-# or switch to pbkdf2_sha256 in app.py
 python wsgi.py
 
 # In another terminal, start mobile app
-```
 cd mobile
 npm install
 npx expo start
-Note: For local dev, update mobile/App.js API base URL to:
-
-bash
-Copy code
-http://localhost:5000/api
-Run on Device
-Install Expo Go on your phone
-
-Run npx expo start --tunnel
-
-Scan the QR code
-
-App loads on your device
 ```
-🔧 Development
 
-Backend Endpoints
-Health
-GET https://busybeeapp.onrender.com/api/health → Health check
+**Note**: For local development, you'll need to update `mobile/App.js` to use `http://localhost:5000/api` instead of the deployed URL.
 
-Authentication
-POST https://busybeeapp.onrender.com/api/register → Register new user
-Body:
+### Run on Device
+1. Install **Expo Go** on your phone
+2. Scan the QR code from the terminal
+3. The app will load on your device
 
-json
-Copy code
-{"username": "alice", "password": "mypassword"}
-POST https://busybeeapp.onrender.com/api/login → Login with existing user
-Body:
+## 🔧 Development
 
-json
-Copy code
-{"username": "alice", "password": "mypassword"}
-Tasks
-GET https://busybeeapp.onrender.com/api/tasks → Retrieve all tasks
+### Backend Development
+```bash
+cd backend
+python app.py  # Development server with hot reload
+```
 
-POST https://busybeeapp.onrender.com/api/tasks → Create new task
+**API Endpoints:**
+- `GET /api/health` - Health check
+- `GET /api/tasks` - Retrieve all tasks
+- `POST /api/tasks` - Create new task
+- `PATCH /api/tasks/:id` - Update task status
+- `POST /api/register` - Register user
+- `GET /api/login` - Retrieve user info
+- `GET /api/weather` - Retrieve weather info
 
-json
-Copy code
-{"text": "Finish BusyBee README"}
-PATCH https://busybeeapp.onrender.com/api/tasks/:id → Update task status
+### Mobile Development
+```bash
+cd mobile
+npx expo start --tunnel  # For testing on physical device
+```
 
-json
-Copy code
-{"done": true}
-🌐 Deployment
-Backend (Render)
-Connect repo to Render
+**Key Components:**
+- `App.js` - Main application with task management logic
+- `app.json` - Expo configuration and app metadata
 
-Create Web Service
+### Testing
+```bash
+# Test backend API
+cd backend
+python test_api.py
 
-Configure:
+# Test mobile connection
+cd mobile
+node test-connection.js
+```
 
-Root Directory: backend
+## 🌐 Deployment
 
-Build Command: pip install -r requirements.txt
+### Backend Deployment (Render)
+1. Create account at [render.com](https://render.com)
+2. Connect GitHub repository
+3. Create new Web Service
+4. Configure:
+   - **Root Directory**: `backend`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `python wsgi.py`
+5. Deploy and get your URL
 
-Start Command: python wsgi.py
+### Mobile App Distribution
+- **Development**: Use Expo Go for testing
+- **Production**: Build standalone apps with `expo build`
 
-Deploy → get service URL
+## 🤝 Contributing
 
-Mobile (Expo)
-Development: Expo Go QR scanning
+### For New Developers
 
-Production: expo build → standalone iOS/Android apps
+1. **Fork the repository**
+2. **Clone your fork**: `git clone https://github.com/your-username/BusyBeeApp.git`
+3. **Create a feature branch**: `git checkout -b feature/your-feature-name`
+4. **Follow the Quick Start** guide above
+5. **Make your changes** and test thoroughly
+6. **Commit your changes**: `git commit -m "Add your feature"`
+7. **Push to your fork**: `git push origin feature/your-feature-name`
+8. **Create a Pull Request**
 
-📚 Example Flows
-Register a User
-bash
-Copy code
-curl -X POST https://busybeeapp.onrender.com/api/register \
-  -H "Content-Type: application/json" \
-  -d '{"username":"test","password":"1234"}'
-Login
-bash
-Copy code
-curl -X POST https://busybeeapp.onrender.com/api/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"test","password":"1234"}'
-Get Tasks
-bash
-Copy code
+### Development Workflow
+- **Backend changes**: Test with `python test_api.py`
+- **Mobile changes**: Test on physical device via Expo Go
+- **Integration testing**: Verify mobile app connects to backend
+- **Documentation**: Update README for significant changes
+
+## 📚 API Documentation
+
+### Task Object
+```json
+{
+  "id": 1,
+  "text": "Complete project documentation",
+  "created_at": "2025-09-05T10:30:00Z",
+  "done": false
+}
+```
+
+### Endpoints
+
+#### GET /api/tasks
+Retrieve all tasks
+```bash
 curl https://busybeeapp.onrender.com/api/tasks
+```
+
+#### POST /api/tasks
+Create a new task
+```bash
+curl -X POST https://busybeeapp.onrender.com/api/tasks \
+  -H "Content-Type: application/json" \
+  -d '{"text": "New task"}'
+```
+
+#### PATCH /api/tasks/:id
+Update task completion status
+```bash
+curl -X PATCH https://busybeeapp.onrender.com/api/tasks/1 \
+  -H "Content-Type: application/json" \
+  -d '{"done": true}'
+```
